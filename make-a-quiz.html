@@ -1,11 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create a Quiz</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="make-a-quiz.css">
+  </head>
 <body>
+  <ul class="topnav">
+    <li><a  href="index.html">Home</a></li>
+    <li><a href="add-question.html">Add questions</a></li>
+    <li><a class="active" href="make-a-quiz.html">Create a quiz</a></li>
+    <li><a href="take-a-quiz.html">Take a quiz</a></li>
+    <li class="right"><a href="#about">About</a></li>
+  </ul>
+
+  <div class="questions">
+    <h1>Questions Bank</h1>
+    <b>Click on a question to add it to the quiz.</b><br />
+    <br />
+    <div id="list" class="cards"></div>
+  </div>
   
+  <div class="quiz">
+    <h1 id="createTitle">Create a Quiz</h1>
+    <form>
+      <label for="quizTitle">Quiz Title:</label>
+      <input type="text" id="quizTitle" name="quizTitle" required="true" /><br />
+      <br />
+      <input type="button" value="Save changes" onclick="create()" />
+      <input type="button" value="Save and create new quiz" onclick="create();window.location.reload()" />
+    </form>
+    <div id="quizList" class="cards"></div>
+  </div>
+
+  <script>
+    let host = "http://localhost:8080";
+    let questions = [];
+
+    async function getAll() {
+        let response = await fetch(host + "/questions");
+        let result = await response.json();
+        return result;
+    }
+
+    function changeTitle(num) {
+        let createTitle = document.getElementById("createTitle");
+        num === 1 ? 
+        createTitle.innerHTML = "Create a Quiz (" + num + " question)" :
+        createTitle.innerHTML = "Create a Quiz (" + num + " questions)";
+    }
+
+    async function displayTheQuestions() {
+        if (questions.length === 0) {
+            questions = await getAll();
+        }
+
+        let list = document.getElementById("list");
+        list.innerHTML = "";
+
+        for (let question of questions) {
+            let div = document.createElement("div");
+            div.className = "card";
+            div.dataset.id = question.id;
+            div.addEventListener("click", toggleQuizList);
+            let innerHtml = `
+                <img src="${host}/questions/${question.id}/image" alt="question" style="width:100%">
+                <div class="container">
+                    <h4><b>${question.id}</b></h4> 
+                    <p>${question.description}</p>
+                    <form>
+                        <input type="radio" id="q${question.id}ptionA" name="q${question.id}Answer" value="A">
+                        <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
+                        <input type="radio" id="q${question.id}ptionB" name="q${question.id}Answer" value="B">
+                        <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+                        <input type="radio" id="q${question.id}ptionC" name="q${question.id}Answer" value="C">
+                        <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+                    </form> 
+                </div>
+            `;
+            div.innerHTML = innerHtml;
+            list.appendChild(div);
+        }
+    }
+
+    function toggleQuizList(event) {
+        let card = event.currentTarget;
+        let quizList = document.getElementById("quizList");
+
+        if (card.parentElement === quizList) {
+            document.getElementById("list").appendChild(card);
+        } else {
+            quizList.appendChild(card);
+        }
+
+        let numQuestions = quizList.children.length;
+        changeTitle(numQuestions);
+    }
+
+    async function create() {
+            let quizTitle = document.getElementById("quizTitle").value;
+            let quizList = document.getElementById("quizList");
+            let questions = quizList.children;
+            let questionIds = Array.from(questions).map(question => parseInt(question.dataset.id));
+
+            let quiz = {
+                title: quizTitle,
+                questionIds: questionIds
+            };
+
+            try {
+                let allTitlesResponse = await fetch(host + "/quizzes", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                let result = await allTitlesResponse.json();
+                let allTitles = result.map(quiz => quiz.title.toLowerCase());
+
+                if (allTitles.includes(quizTitle.toLowerCase())) {
+                    let id = result.find(quiz => quiz.title.toLowerCase() === quizTitle.toLowerCase()).id;
+                    let response = await fetch(host + "/quizzes/" + id, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(quiz),
+                    });
+                    let resultMessage = await response.status;
+                    if (resultMessage === 200) {
+                        alert("The quiz was updated successfully!");
+                    } else {
+                        alert("The quiz was not updated!");
+                    }
+                } else {
+                    let response = await fetch(host + "/quizzes", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(quiz),
+                    });
+                    let resultMessage = await response.status;
+                    if (resultMessage === 200) {
+                        alert("The quiz was added successfully!");
+                    } else {
+                        alert("The quiz was not added!");
+                    }
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+    displayTheQuestions();
+    changeTitle(0);
+</script>
 </body>
 </html>
