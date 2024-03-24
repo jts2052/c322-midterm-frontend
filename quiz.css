@@ -10,8 +10,25 @@
     justify-content: space-between;
 }
 
-.hide {
-    visibility: hidden;
-    display: none;
+#nextBtn {
+    order: 2;
 }
 
+.hide {
+    visibility: hidden;
+}
+
+.q-container {
+    padding: 2px 16px;
+    width: 40%;
+}
+
+.results {
+    display: inline-block;
+    width: 40%;
+    margin-left: 30vw;
+}
+
+.results h2 {
+    text-align: center;
+}

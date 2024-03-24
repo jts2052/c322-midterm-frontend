@@ -2,10 +2,147 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+    <link rel="stylesheet" href="quiz.css">
 </head>
 <body>
+  <ul id="topnav" class="topnav hide">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="add-question.html">Add questions</a></li>
+    <li><a href="make-a-quiz.html">Create a quiz</a></li>
+    <li><a class="active" href="take-a-quiz.html">Take a quiz</a></li>
+    <li class="right"><a href="#about">About</a></li>
+  </ul>
+
+  <div id="results" class="results hide">
+    <h2 id="quizName"></p>
+    <h2 id="score"></p>
+  </div>
+
+  <div id="quizContainer" class="q-container">
+    <div id="questionArea" class="card"></div>
+    <div class="controls">
+      <button id="previousBtn" onclick="previousQuestion()">Previous</button>
+      <p id="qNum" style="text-align: center;"></p>
+      <button id="nextBtn" onclick="nextQuestion()">Next</button>
+    </div>
+  </div>
   
+  <script>
+    let host = "https://c322-midterm-backend-jm4t.onrender.com";
+    var quizId;
+    var currentQuiz;
+    var currentQuestion;
+    var currentQuestionIndex = 0;
+    var allQuestionIds;
+    var allCorrectAnswers;
+    var allCurrentAnswers = [];
+
+    window.onload = function() {
+      var urlParams = new URLSearchParams(window.location.search);
+      quizId = urlParams.get("quizId");      
+      getQuiz().then(() => {
+        displayQuestion();
+      });
+    }
+
+    async function getQuiz() {
+      let response = await fetch(host + "/quizzes/" + quizId,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      currentQuiz = await response.json();
+      allQuestionIds = currentQuiz.questionIds;
+      allCorrectAnswers = currentQuiz.questions.map(q => q.answer);
+    }
+
+    async function getQuestion(num) {
+      let response = await fetch(host + "/questions/" + num,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      currentQuestion = await response.json();
+      console.log(currentQuestion);
+    }
+
+    async function displayQuestion() {
+      await getQuestion(allQuestionIds[currentQuestionIndex]);
+      if (currentQuestionIndex == 0) {
+        document.getElementById("previousBtn").classList.add("hide");
+      } else {
+        document.getElementById("previousBtn").classList.remove("hide");
+      }
+      if (currentQuestionIndex == allQuestionIds.length - 1) {
+        document.getElementById("nextBtn").setAttribute("onclick", "checkAnswers()");
+      } else {
+        document.getElementById("nextBtn").setAttribute("onclick", "nextQuestion()");
+      }
+      document.getElementById("qNum").innerHTML = `Question ${currentQuestionIndex + 1} of ${allQuestionIds.length}`;
+      let innerHtml = `
+        <img src="${host}/questions/${currentQuestion.id}/image" alt="question" style="width:100%">
+        <div class="container">
+          <h4><b>${currentQuestionIndex + 1}</b></h4>
+          <p>${currentQuestion.description}</p>
+          <form>
+            <input type="radio" id="optionA" name="answer" value="${currentQuestion.choices[0]}" required>
+            <label for="optionA">A. ${currentQuestion.choices[0]}</label><br>
+            <input type="radio" id="optionB" name="answer" value="${currentQuestion.choices[1]}" required>
+            <label for="optionB">B. ${currentQuestion.choices[1]}</label><br>
+            <input type="radio" id="optionC" name="answer" value="${currentQuestion.choices[2]}" required>
+            <label for="optionC">C. ${currentQuestion.choices[2]}</label><br>
+          </form>
+        </div>
+      `;
+      document.getElementById("questionArea").innerHTML = innerHtml;
+      console.log(allCurrentAnswers);
+    }
+
+    async function nextQuestion() {
+      let answer = document.querySelector('input[name="answer"]:checked');
+      if (answer) {
+        allCurrentAnswers[currentQuestionIndex] = answer.value;
+      }
+      currentQuestionIndex++;
+      await displayQuestion();
+    }
+
+    async function previousQuestion() {
+      let answer = document.querySelector('input[name="answer"]:checked');
+      if (answer) {
+        allCurrentAnswers[currentQuestionIndex] = answer.value;
+      }
+      currentQuestionIndex--;
+      await displayQuestion();
+    }
+
+    async function checkAnswers() {
+      let score = 0;
+      for (let i = 0; i < allCorrectAnswers.length; i++) {
+        if (allCorrectAnswers[i] == allCurrentAnswers[i]) {
+          score++;
+        }
+      }
+      document.getElementById("topnav").classList.remove("hide");
+      document.getElementById("nextBtn").classList.add("hide");
+      document.getElementById("previousBtn").classList.add("hide");
+      document.getElementById("quizName").innerHTML = `You completed the quiz ${currentQuiz.title}`;
+      document.getElementById("results").classList.remove("hide");
+      document.getElementById("score").innerHTML = `You scored ${score} out of ${allCorrectAnswers.length}`;
+      document.getElementById("quizContainer").classList.remove("hide");
+      document.getElementById("quizContainer").classList.add("hide");
+    }
+  </script>
 </body>
 </html>

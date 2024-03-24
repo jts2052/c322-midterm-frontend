@@ -11,7 +11,7 @@
 </head>
 <body>
 <ul class="topnav">
-    <li><a  href="index.html">Home</a></li>
+    <li><a href="index.html">Home</a></li>
     <li><a href="add-question.html">Add questions</a></li>
     <li><a href="make-a-quiz.html">Create a quiz</a></li>
     <li><a class="active" href="take-a-quiz.html">Take a quiz</a></li>
@@ -34,9 +34,8 @@
 </div>
 
 <script>
-    let host = "http://localhost:8080";
+    let host = "https://c322-midterm-backend-jm4t.onrender.com";
     let quizzes = [];
-    let currentQuizIndex = -1;
 
     async function getAll() {
         let response = await fetch(host + "/quizzes");
@@ -74,96 +73,10 @@
     }
 
     async function toggleQuiz() {
-    let quizId = this.dataset.id;
+        let quizId = this.dataset.id;
 
-    let response = await fetch(host + "/quizzes/" + quizId, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-    let quiz = await response.json();
-
-    let navbar = document.querySelector(".topnav");
-    navbar.style.display = "none";
-    let quizContainer = document.getElementById("quizContainer");
-    quizContainer.style.display = "none";
-
-    let questionArea = document.getElementById("questionArea");
-    questionArea.style.display = "block";
-
-    currentQuizIndex = 0;
-
-    await displayQuestion(quizId, currentQuizIndex);
-}
-
-  async function previousQuestion() {
-    if (currentQuizIndex > 0) {
-        currentQuizIndex--;
-        await displayQuestion(quizzes[currentQuizIndex].id, currentQuizIndex);
+        window.location.href = "/quiz.html?quizId=" + quizId;
     }
-}
-
-async function nextQuestion() {
-  if (currentQuizIndex < quizzes.length - 1) {
-        currentQuizIndex++;
-        await displayQuestion(quizzes[currentQuizIndex].id, currentQuizIndex);
-    }
-}
-
-async function displayQuestion(quizId, index) {
-    let questionArea = document.getElementById("questionArea");
-    let questions = questionArea.children;
-
-    questionArea.innerHTML = "";
-
-    let response = await fetch(host + "/quizzes/" + quizId, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-    let quiz = await response.json();
-    let questionsData = quiz.questions;
-
-    let question = questionsData[index];
-    let div = document.createElement("div");
-    div.className = "card";
-    div.dataset.id = question.id;
-    let innerHtml = `
-        <img src="${host}/questions/${question.id}/image" alt="question" style="width:500px">
-        <div class="container">
-            <h4><b>${question.id}</b></h4> 
-            <p>${question.description}</p>
-            <form>
-                <input type="radio" id="q${question.id}ptionA" name="q${question.id}Answer" value="A">
-                <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
-                <input type="radio" id="q${question.id}ptionB" name="q${question.id}Answer" value="B">
-                <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
-                <input type="radio" id="q${question.id}ptionC" name="q${question.id}Answer" value="C">
-                <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
-            </form> 
-        </div>
-    `;
-    div.innerHTML = innerHtml;
-    questionArea.appendChild(div);
-
-    let qNum = document.getElementById("qNum");
-    qNum.innerHTML = `Question ${index + 1} of ${quiz.questions.length - 1}`;
-
-    let previousBtn = document.getElementById("previousBtn");
-    let nextBtn = document.getElementById("nextBtn");
-    previousBtn.style.display = "inline-block";
-    nextBtn.style.display = "inline-block";
-
-    if (index === 0) {
-        previousBtn.style.display = "none";
-    } else if (index === questionsData.length - 1) {
-        nextBtn.style.display = "none";
-    }
-}
-
-
     displayTheQuizzes();
 </script>
 </body>
