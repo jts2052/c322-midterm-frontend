@@ -140,8 +140,7 @@
       document.getElementById("quizName").innerHTML = `You completed the quiz ${currentQuiz.title}`;
       document.getElementById("results").classList.remove("hide");
       document.getElementById("score").innerHTML = `You scored ${score} out of ${allCorrectAnswers.length}`;
-      document.getElementById("quizContainer").classList.remove("hide");
-      document.getElementById("quizContainer").classList.add("hide");
+      document.getElementById("quizContainer").remove();
     }
   </script>
 </body>
