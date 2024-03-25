@@ -32,7 +32,7 @@
       <input type="text" id="quizTitle" name="quizTitle" required="true" /><br />
       <br />
       <input type="button" value="Save changes" onclick="create()" />
-      <input type="button" value="Save and create new quiz" onclick="create();window.location.reload()" />
+      <input type="button" value="Save and create new quiz" onclick="createReload()" />
     </form>
     <div id="quizList" class="cards"></div>
   </div>
@@ -156,6 +156,11 @@
                 console.error("Error:", error);
             }
         }
+
+    async function createReload() {
+        await create();
+        location.reload();
+    }
 
     displayTheQuestions();
     changeTitle(0);
