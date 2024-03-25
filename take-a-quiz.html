@@ -59,9 +59,9 @@
             let div = document.createElement("div");
             div.className = "card";
             div.dataset.id = quiz.id;
-            div.addEventListener("click", toggleQuiz);
+            //div.addEventListener("click", toggleQuiz);
             let innerHtml = `
-                <div class="container">
+                <div class="container" href="quiz.html?quizId=${this.dataset.id}"">
                     <h4><b>${quiz.id}</b></h4> 
                     <p>${quiz.title}</p>
                     <p>${quiz.questions.length} ${quiz.questions.length === 1 ? "question" : "questions"}</p>
@@ -74,8 +74,6 @@
 
     async function toggleQuiz() {
         let quizId = this.dataset.id;
-
-        window.location.href = "c322-midterm-frontend/quiz.html?quizId=" + quizId;
     }
     displayTheQuizzes();
 </script>
